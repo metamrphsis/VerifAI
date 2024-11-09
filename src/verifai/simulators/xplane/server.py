@@ -1,3 +1,4 @@
+# >>>>>>> xpc.py <<<<<<<
 import socket
 import struct
 import os
@@ -468,7 +469,50 @@ class ViewType(object):
 
 
 
-# BEGIN
+# >>>>>>> images.py <<<<<<<
+import os
+
+import numpy as np
+
+try:
+    import mss
+    import cv2
+except ImportError as e:
+    raise RuntimeError('recording images requires the mss and cv2 packages') from e
+
+sct = mss.mss()
+
+def grab_image(monitor, resizeTo=None):
+    img = cv2.cvtColor(np.array(sct.grab(monitor)), cv2.COLOR_BGRA2BGR)
+    if resizeTo is not None:
+        return cv2.resize(img, resizeTo)
+    return img
+
+def write_video(images, filename='out.avi', fps=10.0):
+    height, width, _ = images[0].shape
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    writer = cv2.VideoWriter(filename, fourcc, fps, (width, height))
+    if not writer.isOpened():
+        raise RuntimeError('failed to initialize VideoWriter')
+    try:
+        for image in images:
+            writer.write(image)
+    finally:
+        writer.release()
+
+
+
+
+
+
+
+
+
+
+
+
+
+# >>>>>>> server.py <<<<<<<
 import functools, argparse, select
 import struct, array
 import time
@@ -542,8 +586,9 @@ class XPlaneServer(verifai.server.Server):
             size = video.get('size')
             if size is not None:
                 size = (size['width'], size['height'])
-            import utils.images as im
-            self.grab_image = lambda: im.grab_image(region, resizeTo=size)
+            # import utils.images as im
+            # self.grab_image = lambda: im.grab_image(region, resizeTo=size)
+            self.grab_image = lambda: grab_image(region, resizeTo=size)
         else:
             self.grab_image = None
 
@@ -683,7 +728,7 @@ class XPlaneFalsifier(verifai.falsifier.mtl_falsifier):
         self.verbosity = falsifier_params.get('verbosity', 0)
         video = falsifier_params.get('video')
         if video is not None:
-            import utils.images       # will throw exception if required libraries not available
+            # import utils.images       # will throw exception if required libraries not available
             self.video_threshold = video['threshold']
             self.video_framerate = video['framerate']
         else:
@@ -705,8 +750,10 @@ class XPlaneFalsifier(verifai.falsifier.mtl_falsifier):
             else:
                 index = len(self.safe_table.table) - 1
                 name = f'safe-{index}'
-            import utils.images
-            utils.images.write_video(self.server.images, filename=name+'.avi',
+            # import utils.images
+            # utils.images.write_video(self.server.images, filename=name+'.avi',
+            #                          fps=self.video_framerate)
+            write_video(self.server.images, filename=name+'.avi',
                                      fps=self.video_framerate)
 
 
