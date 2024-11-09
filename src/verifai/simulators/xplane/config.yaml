@@ -13,7 +13,8 @@ error_table: 'error_table.csv'  # table of unsafe runs
 cross_entropy: 'ce_dists.txt'   # file to dump final cross-entropy distributions into (if applicable)
 
 video:
-  record: false   # whether to record videos
+  # record: false   # whether to record videos
+  record: true   # whether to record videos
   threshold: 0    # save videos only for runs where robustness of spec <= threshold
   region: {top: 100, left: 100, width: 1720, height: 960}   # part of screen to capture
   size: {width: 430, height: 240}   # size of images to save
